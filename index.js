@@ -5,21 +5,22 @@ const puppeteer = require('puppeteer');
 const zipper = require("zip-local");
 const date = new Date();
 
-var inputFile='brokenlink.csv';
+var inputFile='brokenlink123.csv';
 var data = [];
 var newData=[];
 
 // Read CSV file with name brokenlink.csv
-fs.createReadStream(inputFile)
-  .pipe(csv())
-  .on('data', function (row) {
-    data.push(row)
-  })
-  .on('end', function () {
-    console.log('Data loaded')
-    openPage(data);
-  })
-
+function TakeScreenShots(){
+  fs.createReadStream(inputFile)
+    .pipe(csv())
+    .on('data', function (row) {
+      data.push(row)
+    })
+    .on('end', function () {
+      console.log('Data loaded')
+      openPage(data);
+    })
+}
 
 // Function to open page and Take Screenshots
 async function openPage(data){
@@ -88,3 +89,6 @@ async function openPage(data){
   })();
     browser.close();
 };
+
+TakeScreenShots();
+module.exports.TakeScreenShots = TakeScreenShots;
