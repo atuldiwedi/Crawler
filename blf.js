@@ -1,15 +1,19 @@
-var fs = require("fs");
+const fs = require("fs");
 const ObjectsToCsv = require("objects-to-csv");
-var request = require("request");
-var successLinkSet = new Set();
-var i = 1;
-var brokenlinks = [];
-var ignoreUrl = ["linkedin", "test", "Test", "prototype"];
+const request = require("request");
+let successLinkSet = new Set();
+let i = 1;
+let brokenlinks = [];
+// List of ingnore url
+const ignoreUrl = ["linkedin", "test", "Test", "prototype"];
+
+// get link from data.json
 function getLinkAndHit() {
   fs.readFile("data.json", async (err, data) => {
     if (err) throw err;
     let links = JSON.parse(data);
     for (const link of links) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
       console.log("--------" + link.page + "----------------");
       let basePage = link.page;
       if (
@@ -21,9 +25,7 @@ function getLinkAndHit() {
         })
       ) {
         console.log(
-          "====== Testing, prototype or linkedin page ======" +
-            basePage +
-            "======================"
+          "====== Ignored ======" + basePage + "======================"
         );
       } else {
         for (const pageUrl of link.links) {
@@ -35,25 +37,25 @@ function getLinkAndHit() {
             })
           ) {
             console.log(
-              "====== linkedin page Skipped======" +
-                pageUrl +
-                "======================"
+              "====== ignored ======" + pageUrl + "==================="
             );
           } else {
             if (!successLinkSet.has(pageUrl)) {
               await new Promise((resolve) => setTimeout(resolve, 800));
               isBroken(pageUrl, basePage);
             } else {
-              console.log("skipped");
+              console.log("Already checked");
             }
           }
         }
       }
     }
+    console.log(brokenlinks);
     ConvertToCsv();
   });
 }
 
+// check the page is broken or not
 async function isBroken(url, page) {
   // use a timeout value of 10 seconds
   var timeoutInMilliseconds = 10 * 1000;
@@ -73,13 +75,22 @@ async function isBroken(url, page) {
         successLinkSet.add(url);
         console.log("status code: " + statusCode + " Page url: " + url);
       } else {
+        var brokenLinkJson = fs.readFileSync("brokenlink.json");
+        var myObject = JSON.parse(brokenLinkJson);
         brokenlinks.push({ sno: i, link: url, page: page });
+        myObject.push({ sno: i, link: url, page: page });
+        // Writing to our JSON file
+        var newData2 = JSON.stringify(myObject);
+        fs.writeFile("brokenlink.json", newData2, (err) => {
+          // Error checking
+          if (err) throw err;
+        });
         console.log(
           "status code: " +
             statusCode +
             " Page url: " +
             url +
-            "-- base page " +
+            " -- base page " +
             page
         );
         i++;
@@ -92,8 +103,9 @@ async function isBroken(url, page) {
 
 // create new CSV File and make Zip of Images and csv
 async function ConvertToCsv() {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   const BrokenlinkCSV = new ObjectsToCsv(brokenlinks);
-  await BrokenlinkCSV.toDisk(`brokenlink123.csv`);
+  await BrokenlinkCSV.toDisk(`brokenlink.csv`);
   console.log(await BrokenlinkCSV.toString());
   // zipper.sync.zip("./images").compress().save(`Ncr_com_brokenlink_${date.getDate()+"-"+String(parseInt(date.getMonth())+1)+"-"+date.getFullYear()}.zip`);
 }
@@ -101,36 +113,3 @@ async function ConvertToCsv() {
 getLinkAndHit();
 
 module.exports.getLinkAndHit = getLinkAndHit;
-
-// var url = 'http://www.allaboutcookies.org/manage-cookies/' // input your url here
-// function isBroken(url){
-// // use a timeout value of 10 seconds
-// var timeoutInMilliseconds = 10*1000
-// var opts = {
-//   url: url,
-//   timeout: timeoutInMilliseconds
-// }
-
-// request(opts, function (err, res, body) {
-//   if (err) {
-//     console.dir(err)
-//     return
-//   }
-//   var statusCode = res.statusCode
-//   console.log('status code: ' + statusCode)
-// })
-// }
-
-// function openPage(data){
-//     for(const links of data){
-//         // console.log(links[1]);
-//         let arr = links[1];
-//         const obj = JSON.parse(arr);
-//         console.log(obj.count);
-//         // for(const link of links){
-//         //     console.log(link[1]);
-
-//         // }
-//         // isBroken(link[0]);
-//     }
-// }
