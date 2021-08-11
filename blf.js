@@ -109,7 +109,7 @@ async function ConvertToCsv() {
   console.log(await BrokenlinkCSV.toString());
   // zipper.sync.zip("./images").compress().save(`Ncr_com_brokenlink_${date.getDate()+"-"+String(parseInt(date.getMonth())+1)+"-"+date.getFullYear()}.zip`);
 }
-
+//main function
 getLinkAndHit();
 
 module.exports.getLinkAndHit = getLinkAndHit;
